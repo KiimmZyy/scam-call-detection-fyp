@@ -175,12 +175,9 @@ This project is part of the Final Year Project at IIUM (International Islamic Un
 
 ## 👥 Team Members
 
-- [Your Name] - [Your Email/GitHub]
+- Muhammad Afif Bin Husnan (22212583) - [afifhusnan03@gmail.com]
 - [Duo Name] - [Duo Email/GitHub]
 
-## 📧 Contact
-
-For questions or issues, please open a GitHub issue or contact the project maintainers.
 
 ## 🙏 Acknowledgments
 
@@ -191,3 +188,4 @@ For questions or issues, please open a GitHub issue or contact the project maint
 ---
 
 **Note**: Remember to train the model (`python train_model.py`) before running the API for the first time!
+
