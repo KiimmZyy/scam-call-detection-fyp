@@ -2,14 +2,14 @@
 
 A complete mobile application system for detecting scam calls in real-time using AI/Machine Learning.
 
-## 🚀 Project Overview
+## Project Overview
 
 This Final Year Project (FYP) consists of:
 - **Backend API** - Flask-based REST API with CNN-LSTM neural network for scam detection
 - **Mobile App** - Flutter cross-platform mobile application (iOS & Android)
 - **ML Model** - Trained on call transcripts to identify scam patterns
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .
@@ -30,7 +30,7 @@ This Final Year Project (FYP) consists of:
     └── README.md            # Mobile app documentation
 ```
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 ### Backend
 - **Python 3.11+**
@@ -45,7 +45,7 @@ This Final Year Project (FYP) consists of:
 - **Provider** - State management
 - **HTTP** - API communication
 
-## 📋 Prerequisites
+## Prerequisites
 
 ### Backend Setup
 1. Python 3.11 or higher
@@ -57,7 +57,7 @@ This Final Year Project (FYP) consists of:
 2. Android Studio (for Android)
 3. Xcode (for iOS, Mac only)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone the Repository
 ```bash
@@ -104,7 +104,7 @@ flutter pub get
 flutter run
 ```
 
-## 📖 Documentation
+## Documentation
 
 - [Backend API Documentation](backend_api/README.md) - API endpoints, configuration, deployment
 - [Mobile App Documentation](mobile_app/README.md) - App features, setup, troubleshooting
@@ -125,7 +125,7 @@ flutter run
 ✅ Scam indicator breakdown  
 ✅ Customizable sensitivity settings  
 
-## 🧪 Testing
+## Testing
 
 ### Test Backend API
 ```bash
@@ -144,7 +144,7 @@ curl -X POST http://localhost:5000/detect \
 3. Paste sample scam text in the app
 4. Verify detection works
 
-## 📊 Model Details
+## Model Details
 
 - **Architecture**: CNN-LSTM Neural Network
 - **Training Data**: 358 call transcripts (scam + legitimate)
@@ -152,7 +152,7 @@ curl -X POST http://localhost:5000/detect \
 - **Output**: Scam probability (0-100%)
 - **Current Accuracy**: ~79% on training data
 
-## 🤝 Contributing
+## Contributing
 
 This is an academic project. To contribute:
 
@@ -162,27 +162,27 @@ This is an academic project. To contribute:
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 🔒 Security Notes
+## Security Notes
 
 - Never commit API keys or secrets
 - Model files (`.h5`) are excluded from Git (too large)
 - Use environment variables for sensitive config
 - Enable HTTPS in production
 
-## 📝 License
+## License
 
 This project is part of the Final Year Project at IIUM (International Islamic University Malaysia).
 
 ## 👥 Team Members
 
-- [Your Name] - [Your Email/GitHub]
+- MUHAMMAD AFIF BIN HUSNAN (2212583)
 - [Duo Name] - [Duo Email/GitHub]
 
-## 📧 Contact
+## Contact
 
 For questions or issues, please open a GitHub issue or contact the project maintainers.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - IIUM for project support
 - OpenAI for Whisper model
