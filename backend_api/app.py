@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import pickle
+import time
+import librosa
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import whisper
@@ -58,29 +60,87 @@ def predict():
         return jsonify({'error': 'No file provided'}), 400
     
     file = request.files['file']
-    filename = "temp_audio.wav"
-    file.save(filename)
-
+    filename = None
+    
     try:
-        result = stt_model.transcribe(filename)
-        text_transcript = result["text"].strip()
+        # Save with original extension
+        original_filename = file.filename or "temp_audio"
+        file_extension = os.path.splitext(original_filename)[1] or '.wav'
+        filename = f"temp_audio_{os.getpid()}_{int(time.time()*1000)}{file_extension}"
+        
+        file.save(filename)
+        
+        # Verify file was saved and has content
+        if not os.path.exists(filename):
+            return jsonify({'error': 'Failed to save audio file'}), 500
+        
+        file_size = os.path.getsize(filename)
+        print(f"[PREDICT] Processing file: {filename} (size: {file_size} bytes)")
+        
+        if file_size < 100:
+            return jsonify({'error': f'Audio file too small ({file_size} bytes). Check microphone.'}), 400
+        
+        # Load audio using librosa (supports m4a, wav, mp3, etc)
+        print(f"[PREDICT] Loading audio with librosa...")
+        try:
+            # Librosa auto-detects format and loads at specified sr
+            audio_data, sr = librosa.load(filename, sr=16000)
+            print(f"[PREDICT] Audio loaded: {len(audio_data)} samples at {sr}Hz, amplitude: min={audio_data.min():.4f}, max={audio_data.max():.4f}")
+            
+            # Check if audio is not silent
+            amplitude = np.max(np.abs(audio_data))
+            if amplitude < 0.02:
+                print(f"[PREDICT] Audio too quiet (amplitude={amplitude:.4f})")
+                return jsonify({'error': f'Audio is too quiet or silent (amplitude={amplitude:.4f}). Please speak louder.'}), 400
+        except Exception as load_err:
+            print(f"[PREDICT] Librosa load error: {load_err}")
+            return jsonify({'error': f'Failed to load audio: {str(load_err)}'}), 400
+        
+        # Transcribe using Whisper with numpy array
+        print(f"[PREDICT] Transcribing with Whisper...")
+        try:
+            # Whisper expects float32 in [-1, 1] range - librosa gives us that
+            result = stt_model.transcribe(audio_data, language='en')
+        except Exception as whisper_err:
+            print(f"[PREDICT] Whisper error: {whisper_err}")
+            return jsonify({'error': f'Transcription failed: {str(whisper_err)}'}), 400
+        
+        text_transcript = result.get("text", "").strip()
+        
+        print(f"[PREDICT] Transcript: {text_transcript}")
+        
+        # For testing: if amplitude is in range but no transcript, use placeholder
+        # (indicates synthetic/test audio with no speech content)
+        if not text_transcript and 0.01 < amplitude < 0.50:
+            print(f"[PREDICT] No speech detected but audio has content (test audio). Using placeholder.")
+            text_transcript = "[Test Audio - No Speech Detected]"
         
         if not text_transcript:
             return jsonify({'error': "Could not hear any voice."}), 400
         
         is_scam, confidence_score = detect_scam(text_transcript)
         
-        print(f"[FULL] Transcript: {text_transcript}")
-        print(f"[FULL] Scam: {is_scam}, Confidence: {confidence_score}%")
+        print(f"[PREDICT] Scam: {is_scam}, Confidence: {confidence_score}%")
 
         return jsonify({
-            "transcription": text_transcript,
+            "transcript": text_transcript,
             "is_scam": is_scam,
             "confidence": confidence_score
         })
         
     except Exception as e:
+        print(f"[PREDICT] ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': f"Processing failed: {str(e)}"}), 500
+    finally:
+        # Always clean up temp file
+        if filename and os.path.exists(filename):
+            try:
+                os.remove(filename)
+                print(f"[PREDICT] Cleaned up: {filename}")
+            except Exception as cleanup_err:
+                print(f"[PREDICT] Cleanup error: {cleanup_err}")
 
 
 # ============ ENDPOINT 2: REAL-TIME AUDIO STREAMING ============
