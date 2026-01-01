@@ -16,7 +16,8 @@ CORS(app)  # Enable cross-origin requests from mobile apps
 
 #CONFIGURATION
 MAX_LENGTH = 100 
-SCAM_THRESHOLD = 0.6 
+# Balanced threshold to reduce false positives but still catch obvious scams
+SCAM_THRESHOLD = 0.7 
 CHUNK_DURATION = 5  # Process every 5 seconds of audio
 
 #1. LOAD MODELS
@@ -39,6 +40,20 @@ def detect_scam(text_transcript):
     """Analyzes text and returns scam prediction"""
     if not text_transcript or len(text_transcript.strip()) == 0:
         return None, None
+
+    cleaned_text = text_transcript.lower()
+    keyword_hits = [
+        kw for kw in [
+            "transfer", "bank", "account", "pending transaction", "pay now", "click", "link",
+            "otp", "password", "verification", "refund", "fine", "legal", "warrant",
+            "immediately", "urgent", "your money", "send money", "wire",
+        ]
+        if kw in cleaned_text
+    ]
+
+    # If strong scam keywords appear, force scam with high confidence
+    if keyword_hits:
+        return True, 95.0
     
     sequences = tokenizer.texts_to_sequences([text_transcript])
     padded = pad_sequences(sequences, maxlen=MAX_LENGTH, padding='post', truncating='post')

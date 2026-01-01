@@ -28,6 +28,22 @@ class StatisticsPage extends StatelessWidget {
     return callsPerDay;
   }
 
+  Map<String, int> _getCallsPerDayDynamic(List<DateTime> dates) {
+    final Map<String, int> result = {};
+    for (var i = 0; i < 7; i++) {
+      final d = DateTime.now().subtract(Duration(days: 6 - i));
+      final key = DateFormat('EEE').format(d).toUpperCase();
+      result[key] = 0;
+    }
+    for (final dt in dates) {
+      final key = DateFormat('EEE').format(dt).toUpperCase();
+      if (result.containsKey(key)) {
+        result[key] = (result[key] ?? 0) + 1;
+      }
+    }
+    return result;
+  }
+
   Map<String, int> _extractKeywords(CallHistoryProvider provider) {
     final scamCalls = provider.getScamCalls();
     final Map<String, int> keywords = {};
@@ -53,243 +69,359 @@ class StatisticsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Consumer<CallHistoryProvider>(
-        builder: (context, historyProvider, child) {
-          final stats = historyProvider.statistics;
-          final totalCalls = stats['totalCalls'] ?? 0;
-          final scamPercentage = stats['scamPercentage'] ?? 0.0;
-          final legitPercentage = stats['legitPercentage'] ?? 0.0;
-          final callsPerDay = _getCallsPerDay(historyProvider);
-          final keywords = _extractKeywords(historyProvider);
-          final topKeywords = keywords.entries.toList()
-            ..sort((a, b) => b.value.compareTo(a.value));
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF0E121A), Color(0xFF0B1726)],
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Consumer<CallHistoryProvider>(
+          builder: (context, historyProvider, child) {
+            final stats = historyProvider.statistics;
+            final calls = historyProvider.callHistory;
+            final totalCalls = stats['totalCalls'] ?? 0;
+            final scamPercentage = stats['scamPercentage'] ?? 0.0;
+            final legitPercentage = stats['legitPercentage'] ?? 0.0;
+            final scamCount = stats['scamCalls'] ?? 0;
+            final legitCount = stats['legitCalls'] ?? 0;
+            final avgConfidence = totalCalls == 0
+                ? 0
+                : calls.map((c) => c.confidence).reduce((a, b) => a + b) / totalCalls;
+            final recentCalls = historyProvider.getRecentCalls(days: 7);
+            final callsPerDay = _getCallsPerDayDynamic(recentCalls.map((c) => c.dateTime).toList());
+            final keywords = _extractKeywords(historyProvider);
+            final topKeywords = keywords.entries.toList()
+              ..sort((a, b) => b.value.compareTo(a.value));
 
-          // Show full empty state if no data at all
-          if (totalCalls == 0) {
+            if (totalCalls == 0) {
+              return SafeArea(
+                child: EmptyState(
+                  icon: Icons.bar_chart_outlined,
+                  title: 'No Statistics Yet',
+                  subtitle: 'Analyze some calls to see real insights here.',
+                ),
+              );
+            }
+
             return SafeArea(
-              child: EmptyState(
-                icon: Icons.bar_chart_outlined,
-                title: 'No Statistics Available',
-                subtitle: 'Tap the Home button below to start scanning calls and build your statistics',
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Insights",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Live stats from your scanned calls",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.65),
+                        fontSize: 13,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Summary chips
+                    Row(
+                      children: [
+                        _pill("Total", totalCalls.toString(), const Color(0xFF0EA5E9)),
+                        const SizedBox(width: 10),
+                        _pill("Scam", scamCount.toString(), const Color(0xFFFF5C5C)),
+                        const SizedBox(width: 10),
+                        _pill("Legit", legitCount.toString(), const Color(0xFF15C87A)),
+                      ],
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    _glassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Scam vs Legit",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                          const SizedBox(height: 12),
+                          _progressRow(
+                            label: "Scam",
+                            value: scamPercentage / 100,
+                            color: const Color(0xFFFF5C5C),
+                            trailing: "${scamPercentage.toStringAsFixed(1)}%",
+                          ),
+                          const SizedBox(height: 10),
+                          _progressRow(
+                            label: "Legit",
+                            value: legitPercentage / 100,
+                            color: const Color(0xFF15C87A),
+                            trailing: "${legitPercentage.toStringAsFixed(1)}%",
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _glassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Last 7 Days",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: callsPerDay.entries.map((e) {
+                              final maxCount = (callsPerDay.values.isEmpty)
+                                  ? 1
+                                  : (callsPerDay.values.reduce((a, b) => a > b ? a : b)).clamp(1, 50);
+                              return _bar(e.key, e.value.toDouble(), maxCount.toDouble());
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _glassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Average Detection Confidence",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "${avgConfidence.toStringAsFixed(1)}%",
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text("Higher = more certain", style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                    Text("Shows model confidence", style: TextStyle(color: Colors.white54, fontSize: 11)),
+                                  ],
+                                ),
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _glassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Top Scam Keywords",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                          const SizedBox(height: 10),
+                          topKeywords.isEmpty
+                              ? const Text(
+                                  "No scam calls detected yet",
+                                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                                )
+                              : Wrap(
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: topKeywords.take(8).map((entry) {
+                                    final size = 12.0 + (entry.value * 3.0).clamp(0.0, 10.0);
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.06),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                                      ),
+                                      child: Text(
+                                        entry.key.toUpperCase(),
+                                        style: TextStyle(
+                                          color: const Color(0xFFFF5C5C),
+                                          fontSize: size,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _glassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Recent Activity",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _activityChip("Last 7 days", recentCalls.length.toString()),
+                              _activityChip("Scam in 7 days", recentCalls.where((c) => c.isScam).length.toString(), color: const Color(0xFFFF5C5C)),
+                              _activityChip("Legit in 7 days", recentCalls.where((c) => !c.isScam).length.toString(), color: const Color(0xFF15C87A)),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             );
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                const Text(
-                  "STATISTICS",
-                  style: TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 1. SCAM VS LEGIT RATIO (Pie Chart Card)
-                _buildCard(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Scam VS Legit Call Ratio",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      const SizedBox(height: 15),
-                      totalCalls == 0
-                          ? const Text(
-                              "No data yet",
-                              style: TextStyle(color: Colors.grey, fontSize: 14),
-                            )
-                          : SizedBox(
-                              height: 120,
-                              width: 120,
-                              child: Stack(
-                                children: [
-                                  SizedBox(
-                                    height: 120,
-                                    width: 120,
-                                    child: CircularProgressIndicator(
-                                      value: scamPercentage / 100,
-                                      strokeWidth: 25,
-                                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.redAccent),
-                                      backgroundColor: const Color(0xFF5C6BC0),
-                                    ),
-                                  ),
-                                  Center(
-                                    child: Text(
-                                      "Total\n$totalCalls",
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 10, color: Colors.black),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.circle, color: Colors.redAccent, size: 10),
-                          const SizedBox(width: 5),
-                          Text(
-                            "Scam ${scamPercentage.toStringAsFixed(0)}%",
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                          const SizedBox(width: 20),
-                          const Icon(Icons.circle, color: Color(0xFF5C6BC0), size: 10),
-                          const SizedBox(width: 5),
-                          Text(
-                            "Legit ${legitPercentage.toStringAsFixed(0)}%",
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // 2. CALLS PER DAY (Bar Chart Card)
-                _buildCard(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Number Of Calls Per Day (Last 7 Days)",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _buildBar("MON", callsPerDay['MON']!.toDouble(), const Color(0xFF5C6BC0)),
-                          _buildBar("TUE", callsPerDay['TUE']!.toDouble(), const Color(0xFF5C6BC0)),
-                          _buildBar("WED", callsPerDay['WED']!.toDouble(), const Color(0xFF5C6BC0)),
-                          _buildBar("THU", callsPerDay['THU']!.toDouble(), const Color(0xFF5C6BC0)),
-                          _buildBar("FRI", callsPerDay['FRI']!.toDouble(), const Color(0xFF5C6BC0)),
-                          _buildBar("SAT", callsPerDay['SAT']!.toDouble(), const Color(0xFF5C6BC0)),
-                          _buildBar("SUN", callsPerDay['SUN']!.toDouble(), const Color(0xFF5C6BC0)),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // 3. TOP KEYWORDS (Word Cloud)
-                _buildCard(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Top Scam Keywords",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      const SizedBox(height: 15),
-                      topKeywords.isEmpty
-                          ? const Text(
-                              "No scam calls detected yet",
-                              style: TextStyle(color: Colors.grey, fontSize: 14),
-                            )
-                          : Wrap(
-                              spacing: 15,
-                              runSpacing: 10,
-                              alignment: WrapAlignment.center,
-                              children: topKeywords.take(5).map((entry) {
-                                final size = 14.0 + (entry.value * 4.0).clamp(0.0, 12.0);
-                                return Text(
-                                  entry.key.toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: size,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // 4. ACCURACY (Average Confidence)
-                _buildCard(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Average Detection Confidence",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        totalCalls == 0
-                            ? "No data"
-                            : "${(historyProvider.callHistory.map((c) => c.confidence).reduce((a, b) => a + b) / totalCalls).toStringAsFixed(1)}%",
-                        style: const TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // EXPORT BUTTON
-                SizedBox(
-                  width: 150,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5C6BC0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                    onPressed: () {},
-                    child: const Text("EXPORT", style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildCard({required Widget child}) {
+  Widget _glassCard({required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(15),
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 25,
+            offset: const Offset(0, 16),
+          ),
+        ],
       ),
       child: child,
     );
   }
 
-  Widget _buildBar(String day, double count, Color color) {
-    final height = count == 0 ? 5.0 : (count * 15.0).clamp(5.0, 80.0);
+  Widget _bar(String day, double count, double maxCount) {
+    final ratio = maxCount == 0 ? 0.0 : (count / maxCount);
+    final height = 14.0 + (ratio * 80.0);
     return Column(
       children: [
         Container(
-          width: 8,
+          width: 14,
           height: height,
           decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(5),
+            gradient: const LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Color(0xFF0EA5E9), Color(0xFF7CE7FF)],
+            ),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-        const SizedBox(height: 5),
-        Text(day, style: const TextStyle(fontSize: 10, color: Colors.black)),
+        const SizedBox(height: 6),
+        Text(day, style: const TextStyle(fontSize: 11, color: Colors.white70)),
+        Text(count.toInt().toString(), style: const TextStyle(fontSize: 11, color: Colors.white54)),
       ],
+    );
+  }
+
+  Widget _progressRow({required String label, required double value, required Color color, required String trailing}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            Text(trailing, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: LinearProgressIndicator(
+            minHeight: 8,
+            value: value.clamp(0.0, 1.0),
+            backgroundColor: Colors.white.withOpacity(0.08),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _pill(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(color: Colors.white.withOpacity(0.65), fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _activityChip(String label, String value, {Color color = const Color(0xFF7CE7FF)}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Column(
+        children: [
+          Text(value, style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        ],
+      ),
     );
   }
 }

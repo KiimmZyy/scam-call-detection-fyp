@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'history.dart';   // Import History Page
 import 'statistics.dart'; // Import Statistics Page
 import 'account.dart';    // Import Account Page
@@ -34,83 +35,109 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      
-      // 🎩 APP BAR: Only show the "Profile Icon" AppBar when on the Scan Screen (Index 1)
-      appBar: _selectedIndex == 1 ? AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        automaticallyImplyLeading: false, // Hides default back button
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20.0, top: 10.0),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  color: Colors.white, 
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person_outline, color: Colors.black, size: 30),
-              ),
-              onPressed: () async {
-                // Haptic feedback on profile button tap
-                await HapticFeedback.lightImpact();
-                // 🚀 NAVIGATE TO ACCOUNT PAGE
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AccountPage()),
-                );
-              },
-            ),
-          ),
-        ],
-      ) : null, // If not on Home screen, no AppBar (History/Stats have their own titles)
-
-      // 🔄 BODY: Switches based on the selected bottom icon
-      body: _pages[_selectedIndex],
-
-      // 🦶 BOTTOM NAVIGATION BAR
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF5C6BC0), // The purple background color
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0E121A), Color(0xFF0B1726)],
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent, // Transparent so container color shows
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        
+        // 🎩 APP BAR: Only show the "Profile Icon" AppBar when on the Scan Screen (Index 1)
+        appBar: _selectedIndex == 1 ? AppBar(
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
-          selectedItemColor: Colors.black,    // Active Icon Color
-          unselectedItemColor: Colors.black54, // Inactive Icon Color
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          currentIndex: _selectedIndex,
-          iconSize: 35,
-          type: BottomNavigationBarType.fixed,
-          onTap: (index) async {
-            // Haptic feedback on navigation
-            await HapticFeedback.lightImpact();
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history), 
-              label: 'History',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined), 
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), 
-              label: 'Stats',
+          automaticallyImplyLeading: false, // Hides default back button
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 20.0, top: 10.0),
+              child: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                  ),
+                  child: const Icon(Icons.person_outline, color: Colors.white, size: 30),
+                ),
+                onPressed: () async {
+                  await HapticFeedback.lightImpact();
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => const AccountPage(),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(position: offsetAnimation, child: FadeTransition(opacity: animation, child: child));
+                      },
+                      transitionDuration: const Duration(milliseconds: 300),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
+        ) : null, // If not on Home screen, no AppBar (History/Stats have their own titles)
+
+        // 🔄 BODY: Switches based on the selected bottom icon
+        body: _pages[_selectedIndex],
+
+        // 🦶 BOTTOM NAVIGATION BAR
+        bottomNavigationBar: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.35),
+                blurRadius: 30,
+                offset: const Offset(0, 20),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            backgroundColor: Colors.transparent, // Transparent so container color shows
+            elevation: 0,
+            selectedItemColor: const Color(0xFF7CE7FF),
+            unselectedItemColor: Colors.white70,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            currentIndex: _selectedIndex,
+            iconSize: 30,
+            type: BottomNavigationBarType.fixed,
+            onTap: (index) async {
+              await HapticFeedback.lightImpact();
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history), 
+                label: 'History',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined), 
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.bar_chart), 
+                label: 'Stats',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -125,20 +152,18 @@ class ScanView extends StatefulWidget {
   State<ScanView> createState() => _ScanViewState();
 }
 
-class _ScanViewState extends State<ScanView> {
+class _ScanViewState extends State<ScanView> with SingleTickerProviderStateMixin {
   final RecordingService _recordingService = RecordingService();
   final CallMonitorService _callMonitorService = CallMonitorService();
-  final TextEditingController _textController = TextEditingController();
   
   bool _isRecording = false;
   bool _isProcessing = false;
   bool _isCallMonitoringActive = false;
-  bool _apiTesting = false;
-  bool? _apiOnline;
   String _statusText = "TAP TO SCAN";
   Timer? _recordingTimer;
   int _recordingDuration = 0;
   double _amplitude = 0.0;
+  double _micButtonScale = 1.0;
 
   @override
   void initState() {
@@ -153,28 +178,10 @@ class _ScanViewState extends State<ScanView> {
     });
   }
 
-  Future<void> _testApi() async {
-    setState(() {
-      _apiTesting = true;
-    });
-    final apiProvider = Provider.of<ApiProvider>(context, listen: false);
-    final ok = await apiProvider.testConnection();
-    setState(() {
-      _apiOnline = ok;
-      _apiTesting = false;
-    });
-    showSimpleNotification(
-      Text(ok ? 'API online' : 'API offline', style: const TextStyle(color: Colors.white)),
-      background: ok ? Colors.green : Colors.red,
-      duration: const Duration(seconds: 2),
-    );
-  }
-
   @override
   void dispose() {
     _recordingTimer?.cancel();
     _recordingService.dispose();
-    _textController.dispose();
     super.dispose();
   }
 
@@ -289,10 +296,24 @@ class _ScanViewState extends State<ScanView> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54,
-      builder: (context) => ResultBottomSheet(
-        isScam: isScam,
-        confidence: confidence.toDouble(),
-        transcript: transcript,
+      builder: (context) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        builder: (context, value, child) {
+          return Transform.translate(
+            offset: Offset(0, 50 * (1 - value)),
+            child: Opacity(
+              opacity: value,
+              child: child,
+            ),
+          );
+        },
+        child: ResultBottomSheet(
+          isScam: isScam,
+          confidence: confidence.toDouble(),
+          transcript: transcript,
+        ),
       ),
     );
   }
@@ -301,103 +322,9 @@ class _ScanViewState extends State<ScanView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: const Color(0xFFFF5C5C),
       ),
     );
-  }
-
-  Future<void> _detectFromText() async {
-    final text = _textController.text.trim();
-    if (text.isEmpty) {
-      _showError('Please enter some text to analyze');
-      return;
-    }
-
-    setState(() {
-      _isProcessing = true;
-      _statusText = "ANALYZING...";
-    });
-
-    try {
-      final apiProvider = Provider.of<ApiProvider>(context, listen: false);
-      final result = await apiProvider.detectFromText(text);
-
-      if (result == null) {
-        throw Exception('No response from server');
-      }
-
-      _showResultDialog(result);
-      _textController.clear();
-    } catch (e) {
-      debugPrint('[HOME] Error detecting from text: $e');
-      _showError('Failed to analyze text: $e');
-    } finally {
-      setState(() {
-        _isProcessing = false;
-        _statusText = "TAP TO SCAN";
-      });
-    }
-  }
-
-  Future<void> _testAudioFromAsset() async {
-    debugPrint('[HOME] Testing with asset audio...');
-    setState(() {
-      _isProcessing = true;
-      _statusText = "TESTING AUDIO...";
-    });
-
-    try {
-      // Get or create test audio
-      final testAudioPath = await TestAudioService.getOrCreateTestAudio();
-      debugPrint('[HOME] Test audio path: $testAudioPath');
-
-      // Verify file exists and has content
-      final file = File(testAudioPath);
-      final exists = await file.exists();
-      final size = exists ? await file.length() : 0;
-      debugPrint('[HOME] Test file exists: $exists, Size: $size bytes');
-
-      if (!exists || size == 0) {
-        _showError('Failed to create test audio file');
-        return;
-      }
-
-      // Send to API for analysis
-      final apiProvider = Provider.of<ApiProvider>(context, listen: false);
-      debugPrint('[HOME] Sending test audio to API: $testAudioPath');
-      final result = await apiProvider.detectFromAudio(testAudioPath);
-
-      debugPrint('[HOME] Test audio API Result: $result');
-
-      if (result != null) {
-        // Save to database
-        final callHistory = CallHistory(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          phoneNumber: 'Test Call',
-          dateTime: DateTime.now(),
-          transcript: result['transcript'] ?? '',
-          isScam: result['is_scam'] ?? false,
-          confidence: (result['confidence'] ?? 0).toDouble(),
-          audioFilePath: testAudioPath,
-        );
-
-        final historyProvider = Provider.of<CallHistoryProvider>(context, listen: false);
-        await historyProvider.addCallHistory(callHistory);
-
-        await HapticFeedback.mediumImpact();
-        _showResultDialog(result);
-      } else {
-        _showError(apiProvider.error ?? 'Failed to analyze test audio');
-      }
-    } catch (e) {
-      debugPrint('[HOME] Error testing audio: $e');
-      _showError('Test failed: $e');
-    } finally {
-      setState(() {
-        _isProcessing = false;
-        _statusText = "TAP TO SCAN";
-      });
-    }
   }
 
   String _formatDuration() {
@@ -410,22 +337,17 @@ class _ScanViewState extends State<ScanView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       body: SizedBox(
         width: double.infinity,
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
                   // Call monitoring toggle
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -433,8 +355,8 @@ class _ScanViewState extends State<ScanView> {
                           children: [
                             Icon(
                               _isCallMonitoringActive ? Icons.shield : Icons.shield_outlined,
-                              color: _isCallMonitoringActive ? Colors.green : Colors.white54,
-                              size: 24,
+                              color: _isCallMonitoringActive ? const Color(0xFF7CE7FF) : Colors.white70,
+                              size: 22,
                             ),
                             const SizedBox(width: 10),
                             Column(
@@ -444,14 +366,14 @@ class _ScanViewState extends State<ScanView> {
                                   'Real-time Protection',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 Text(
                                   _isCallMonitoringActive ? 'Active' : 'Inactive',
                                   style: TextStyle(
-                                    color: _isCallMonitoringActive ? Colors.green : Colors.white54,
+                                    color: _isCallMonitoringActive ? const Color(0xFF7CE7FF) : Colors.white60,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -471,7 +393,7 @@ class _ScanViewState extends State<ScanView> {
                               showSimpleNotification(
                                 const Text('Real-time call protection enabled',
                                     style: TextStyle(color: Colors.white)),
-                                background: Colors.green,
+                                background: const Color(0xFF15C87A),
                                 duration: const Duration(seconds: 2),
                               );
                             } else {
@@ -480,7 +402,7 @@ class _ScanViewState extends State<ScanView> {
                               showSimpleNotification(
                                 const Text('Real-time call protection disabled',
                                     style: TextStyle(color: Colors.white)),
-                                background: Colors.orange,
+                                background: const Color(0xFFFFB74D),
                                 duration: const Duration(seconds: 2),
                               );
                             }
@@ -489,8 +411,10 @@ class _ScanViewState extends State<ScanView> {
                               _statusText = value ? "PROTECTION ACTIVE" : "TAP TO SCAN";
                             });
                           },
-                          activeColor: Colors.green,
-                          activeTrackColor: Colors.green.withOpacity(0.5),
+                          activeColor: const Color(0xFF0F172A),
+                          activeTrackColor: const Color(0xFF7CE7FF),
+                          inactiveThumbColor: const Color(0xFF101621),
+                          inactiveTrackColor: Colors.white24,
                         ),
                       ],
                     ),
@@ -499,137 +423,21 @@ class _ScanViewState extends State<ScanView> {
                   const SizedBox(height: 20),
 
                   // API test button and status
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: _apiTesting ? null : _testApi,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF5C6BC0),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              ),
-                              icon: Icon(_apiTesting ? Icons.hourglass_bottom : Icons.wifi),
-                              label: Text(_apiTesting ? 'Testing…' : 'Test API'),
-                            ),
-                            const SizedBox(width: 12),
-                            if (_apiOnline != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: _apiOnline! ? Colors.green : Colors.red,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Text(
-                                  _apiOnline! ? 'Online' : 'Offline',
-                                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Test audio button (for emulator testing)
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _isProcessing ? null : _testAudioFromAsset,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purple.shade700,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                            ),
-                            icon: const Icon(Icons.audiotrack),
-                            label: const Text('Test Audio (Emulator)'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   const SizedBox(height: 12),
 
                   // Status Text
                   Text(
                     _statusText,
                     style: const TextStyle(
-                      fontFamily: 'serif',
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Manrope',
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
-                      letterSpacing: 1.2,
+                      letterSpacing: 0.5,
                     ),
                   ),
 
-                  const SizedBox(height: 10),
-
-                  // TEXT INPUT SECTION - MOVED UP FOR VISIBILITY
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Or enter text to test:',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _textController,
-                          maxLines: 3,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
-                          decoration: InputDecoration(
-                            hintText: 'Type a text message to analyze...',
-                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 12),
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.08),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Color(0xFF5C6BC0), width: 1.5),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isProcessing ? null : _detectFromText,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5C6BC0),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              _isProcessing ? 'Analyzing...' : 'Analyze Text',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
                   // Recording duration
                   if (_isRecording)
@@ -637,7 +445,7 @@ class _ScanViewState extends State<ScanView> {
                       _formatDuration(),
                       style: const TextStyle(
                         fontSize: 20,
-                        color: Colors.red,
+                        color: Color(0xFFFF5C5C),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -650,55 +458,96 @@ class _ScanViewState extends State<ScanView> {
                     children: [
                       // 🎤 BIG MICROPHONE BUTTON
                       GestureDetector(
+                        onTapDown: (_) {
+                          if (!_isProcessing && !_isCallMonitoringActive) {
+                            setState(() => _micButtonScale = 0.92);
+                          }
+                        },
+                        onTapUp: (_) {
+                          if (!_isProcessing && !_isCallMonitoringActive) {
+                            setState(() => _micButtonScale = 1.0);
+                          }
+                        },
+                        onTapCancel: () {
+                          setState(() => _micButtonScale = 1.0);
+                        },
                         onTap: (_isProcessing || _isCallMonitoringActive) ? null : _toggleRecording,
-                        child: Container(
-                          width: 160,
-                          height: 160,
-                          decoration: BoxDecoration(
-                            color: _isCallMonitoringActive
-                                ? Colors.grey
-                                : (_isRecording
-                                    ? Colors.red.withOpacity(0.8)
-                                    : (_isProcessing ? Colors.grey : const Color(0xFFD9D9D9))),
-                            shape: BoxShape.circle,
-                            boxShadow: _isRecording
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.red.withOpacity(0.5),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Icon(
-                            _isCallMonitoringActive
-                                ? Icons.shield
-                                : (_isProcessing ? Icons.hourglass_empty : Icons.mic),
-                            size: 90,
-                            color: _isCallMonitoringActive
-                                ? Colors.white
-                                : (_isRecording ? Colors.white : Colors.black),
+                        child: AnimatedScale(
+                          scale: _micButtonScale,
+                          duration: const Duration(milliseconds: 150),
+                          curve: Curves.easeOut,
+                          child: Container(
+                            width: 160,
+                            height: 160,
+                            decoration: BoxDecoration(
+                              color: _isCallMonitoringActive
+                                  ? const Color(0xFF1F2937)
+                                  : (_isRecording
+                                      ? const Color(0xFFFF5C5C)
+                                      : (_isProcessing ? const Color(0xFF1F2937) : const Color(0xFF111827))),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (_isRecording ? const Color(0xFFFF5C5C) : const Color(0xFF7CE7FF)).withOpacity(0.35),
+                                  blurRadius: 35,
+                                  spreadRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              _isCallMonitoringActive
+                                  ? Icons.shield
+                                  : (_isProcessing ? Icons.hourglass_empty : Icons.mic),
+                              size: 84,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 15),
 
-                      // 🎵 AUDIO WAVE ICON (Visual feedback)
+                      // 🎵 AUDIO WAVEFORM (iOS-style breathing bars)
                       Container(
-                        width: 100,
-                        height: 100,
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                         decoration: BoxDecoration(
-                          color: _isRecording
-                              ? const Color(0xFF5C6BC0).withOpacity(0.6)
-                              : const Color(0xFFD9D9D9),
-                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.04),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: Colors.white.withOpacity(0.08)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isRecording ? const Color(0xFFFF5C5C) : const Color(0xFF7CE7FF)).withOpacity(0.22),
+                              blurRadius: 28,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        child: Icon(
-                          Icons.graphic_eq,
-                          size: 50,
-                          color: _isRecording ? Colors.white : Colors.black,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: List.generate(12, (i) {
+                            final base = 0.3 + 0.7 * math.sin((i / 2) + DateTime.now().millisecond / 320);
+                            final level = (_amplitude.clamp(0.0, 1.0) + 0.15);
+                            final height = 14 + 40 * base * level;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              curve: Curves.easeOut,
+                              width: 6,
+                              height: height,
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: _isRecording
+                                      ? [const Color(0xFFFF5C5C), const Color(0xFFFF9A8B)]
+                                      : [const Color(0xFF0EA5E9), const Color(0xFF7CE7FF)],
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ),
                     ],
@@ -709,8 +558,6 @@ class _ScanViewState extends State<ScanView> {
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 }
