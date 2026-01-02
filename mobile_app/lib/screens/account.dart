@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'edit_profile.dart';
@@ -11,6 +12,7 @@ import '../services/test_audio_service.dart';
 import '../widgets/result_bottom_sheet.dart';
 import '../models/call_history.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -24,6 +26,7 @@ class _AccountPageState extends State<AccountPage> {
   bool _apiTesting = false;
   bool? _apiOnline;
   bool _isProcessing = false;
+  int _selectedAudioIndex = 1;
 
   @override
   void dispose() {
@@ -54,13 +57,22 @@ class _AccountPageState extends State<AccountPage> {
     });
 
     try {
-      final testAudioPath = await TestAudioService.getOrCreateTestAudio();
-      final file = File(testAudioPath);
-      final exists = await file.exists();
-      final size = exists ? await file.length() : 0;
+      // Load audio from assets
+      final audioAsset = 'assets/audio/test_audio_$_selectedAudioIndex.wav';
+      final audioData = await rootBundle.load(audioAsset);
+      final bytes = audioData.buffer.asUint8List();
+
+      // Save to temp directory
+      final tempDir = await getTemporaryDirectory();
+      final audioFile = File('${tempDir.path}/test_audio_$_selectedAudioIndex.wav');
+      await audioFile.writeAsBytes(bytes);
+
+      final testAudioPath = audioFile.path;
+      final exists = await audioFile.exists();
+      final size = exists ? await audioFile.length() : 0;
 
       if (!exists || size == 0) {
-        _showError('Failed to create test audio file');
+        _showError('Failed to load test audio file');
         return;
       }
 
@@ -70,7 +82,7 @@ class _AccountPageState extends State<AccountPage> {
       if (result != null) {
         final callHistory = CallHistory(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          phoneNumber: 'Test Call',
+          phoneNumber: 'Test Audio #$_selectedAudioIndex',
           dateTime: DateTime.now(),
           transcript: result['transcript'] ?? '',
           isScam: result['is_scam'] ?? false,
@@ -331,6 +343,38 @@ class _AccountPageState extends State<AccountPage> {
                         Text(
                           "Test the audio pipeline without a real microphone",
                           style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12),
+                        ),
+                        const SizedBox(height: 12),
+                        // Audio selector dropdown
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white.withOpacity(0.15)),
+                          ),
+                          child: DropdownButton<int>(
+                            value: _selectedAudioIndex,
+                            dropdownColor: const Color(0xFF0E121A),
+                            isExpanded: true,
+                            underline: const SizedBox(),
+                            items: [1, 2, 3, 4].map((int value) {
+                              return DropdownMenuItem<int>(
+                                value: value,
+                                child: Text(
+                                  'Test Audio #$value',
+                                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (int? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedAudioIndex = newValue;
+                                });
+                              }
+                            },
+                          ),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
