@@ -47,6 +47,8 @@ def detect_scam(text_transcript):
             "transfer", "bank", "account", "pending transaction", "pay now", "click", "link",
             "otp", "password", "verification", "refund", "fine", "legal", "warrant",
             "immediately", "urgent", "your money", "send money", "wire",
+            "social security", "suspend", "irs", "tax debt", "rebate check", "overcharge",
+            "lawsuit settlement", "approval", "settlement", "suspicious activity",
         ]
         if kw in cleaned_text
     ]

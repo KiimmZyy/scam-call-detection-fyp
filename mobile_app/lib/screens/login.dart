@@ -93,167 +93,189 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Hi, Welcome !!!",
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0E121A), Color(0xFF0B1726)],
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Welcome Back",
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Protect yourself from scam calls",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.6),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Protect yourself from scam calls",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 50),
+                        const SizedBox(height: 50),
 
-                      Hero(
-                        tag: 'logo',
-                        child: Container(
+                        // Logo with gradient
+                        Container(
                           width: 120,
                           height: 120,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF5C6BC0),
                             shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF7CE7FF), Color(0xFF0EA5E9)],
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF5C6BC0).withOpacity(0.3),
+                                color: const Color(0xFF0EA5E9).withOpacity(0.4),
                                 blurRadius: 30,
                                 spreadRadius: 5,
                               ),
                             ],
                           ),
                           child: const Icon(
-                            Icons.shield_outlined,
+                            Icons.shield,
                             size: 60,
                             color: Colors.white,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 60),
+                        const SizedBox(height: 60),
 
-                      _buildTextField(
-                        "Username",
-                        controller: _usernameController,
-                        icon: Icons.person_outline,
-                      ),
-                      const SizedBox(height: 20),
-
-                      _buildTextField(
-                        "Password",
-                        controller: _passwordController,
-                        isPassword: true,
-                        icon: Icons.lock_outline,
-                      ),
-                      const SizedBox(height: 35),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5C6BC0),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shadowColor: const Color(0xFF5C6BC0).withOpacity(0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          onPressed: _isLoading ? null : _handleLogin,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  "LOG IN",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
+                        _buildGlassTextField(
+                          "Username",
+                          controller: _usernameController,
+                          icon: Icons.person_outline,
                         ),
-                      ),
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Password reset feature coming soon'),
-                              behavior: SnackBarBehavior.floating,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          "Forgot Password?",
-                          style: TextStyle(
-                            color: const Color(0xFF5C6BC0).withOpacity(0.8),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
+                        _buildGlassTextField(
+                          "Password",
+                          controller: _passwordController,
+                          isPassword: true,
+                          icon: Icons.lock_outline,
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 35),
 
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF5C6BC0).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFF5C6BC0).withOpacity(0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 16,
-                              color: const Color(0xFF5C6BC0).withOpacity(0.8),
+                        // Login button with gradient
+                        Container(
+                          width: double.infinity,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF7CE7FF), Color(0xFF0EA5E9)],
                             ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                "Demo: Any username, password min 6 chars",
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 11,
-                                ),
-                                textAlign: TextAlign.center,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0EA5E9).withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                          ],
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Sign In",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 20),
+
+                        TextButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Password reset feature coming soon'),
+                                behavior: SnackBarBehavior.floating,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: const Color(0xFF7CE7FF).withOpacity(0.8),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Info box
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7CE7FF).withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF7CE7FF).withOpacity(0.15),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: const Color(0xFF7CE7FF).withOpacity(0.8),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  "Demo: Any username, password min 6 chars",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.5),
+                                    fontSize: 11,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -264,7 +286,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildTextField(
+  Widget _buildGlassTextField(
     String hint, {
     bool isPassword = false,
     required TextEditingController controller,
@@ -272,14 +294,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: TextField(
         controller: controller,
@@ -287,33 +307,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         style: const TextStyle(color: Colors.white, fontSize: 15),
         onSubmitted: (_) => _handleLogin(),
         decoration: InputDecoration(
-          filled: true,
-          fillColor: const Color(0xFF1E1E1E),
+          filled: false,
           hintText: hint,
-          prefixIcon: Icon(icon, color: const Color(0xFF5C6BC0), size: 22),
+          prefixIcon: Icon(icon, color: const Color(0xFF7CE7FF), size: 22),
           hintStyle: TextStyle(
             color: Colors.white.withOpacity(0.4),
             fontSize: 15,
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Colors.white.withOpacity(0.05),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFF5C6BC0),
-              width: 2,
-            ),
-          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
         ),
       ),
     );
