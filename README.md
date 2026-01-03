@@ -119,7 +119,7 @@ flutter run
 ✅ RESTful API with CORS support  
 
 ### Mobile App
-✅ Text-based scam detection  
+✅ Text and Audio-based scam detection  
 ✅ Call history with statistics  
 ✅ Confidence score display  
 ✅ Scam indicator breakdown  
