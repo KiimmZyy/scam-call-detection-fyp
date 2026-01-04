@@ -19,6 +19,9 @@ dependencies:
   record: ^6.1.0
   permission_handler: ^12.0.1
   
+  # File Picker
+  file_picker: ^8.1.4
+  
   # UI & State Management
   cupertino_icons: ^1.0.6
   provider: ^6.0.0

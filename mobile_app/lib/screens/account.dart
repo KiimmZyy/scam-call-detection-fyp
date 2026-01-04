@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'edit_profile.dart';
 import 'change_password.dart';
 import 'login.dart';
@@ -133,6 +134,48 @@ class _AccountPageState extends State<AccountPage> {
       setState(() {
         _isProcessing = false;
       });
+    }
+  }
+
+  Future<void> _uploadAndTestAudio() async {
+    try {
+      FilePickerResult? fileResult = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: false,
+      );
+
+      if (fileResult != null && fileResult.files.single.path != null) {
+        setState(() => _isProcessing = true);
+
+        File audioFile = File(fileResult.files.single.path!);
+        String fileName = fileResult.files.single.name;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Processing $fileName...'),
+              backgroundColor: const Color(0xFF0EA5E9),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        final apiProvider = Provider.of<ApiProvider>(context, listen: false);
+        final result = await apiProvider.detectFromAudio(audioFile.path);
+
+        setState(() => _isProcessing = false);
+
+        if (result != null && mounted) {
+          _showResultDialog(result);
+        } else {
+          _showError('Failed to analyze uploaded audio');
+        }
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        _showError('Upload failed: ${e.toString()}');
+      }
     }
   }
 
@@ -391,6 +434,69 @@ class _AccountPageState extends State<AccountPage> {
                             ),
                             icon: const Icon(Icons.audiotrack, size: 18),
                             label: Text(_isProcessing ? 'Testing...' : 'Run Test Audio'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Upload Audio Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.upload_file,
+                              color: const Color(0xFF7CE7FF),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Upload Audio File",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Upload your own audio file (.wav, .mp3, .m4a) to check if it's a scam",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _isProcessing ? null : _uploadAndTestAudio,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF7CE7FF),
+                              foregroundColor: const Color(0xFF0E121A),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              disabledBackgroundColor: Colors.white.withOpacity(0.2),
+                            ),
+                            icon: const Icon(Icons.folder_open, size: 18),
+                            label: Text(
+                              _isProcessing ? 'Processing...' : 'Choose Audio File',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ),
                       ],

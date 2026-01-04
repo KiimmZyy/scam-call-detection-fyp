@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:file_picker/file_picker.dart';
 import 'history.dart';   // Import History Page
 import 'statistics.dart'; // Import Statistics Page
 import 'account.dart';    // Import Account Page
@@ -327,6 +328,61 @@ class _ScanViewState extends State<ScanView> with SingleTickerProviderStateMixin
     );
   }
 
+  Future<void> _uploadAndTestAudio() async {
+    if (_isProcessing || _isCallMonitoringActive) return;
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() => _isProcessing = true);
+
+        File audioFile = File(result.files.single.path!);
+        String fileName = result.files.single.name;
+
+        if (mounted) {
+          showSimpleNotification(
+            Text('Processing $fileName...', style: const TextStyle(color: Colors.white)),
+            background: const Color(0xFF0EA5E9),
+            duration: const Duration(seconds: 2),
+          );
+        }
+
+        final apiProvider = Provider.of<ApiProvider>(context, listen: false);
+        final apiResult = await apiProvider.detectFromAudio(audioFile.path);
+
+        setState(() => _isProcessing = false);
+
+        if (apiResult != null && mounted) {
+          final callHistory = CallHistory(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            phoneNumber: 'Uploaded: $fileName',
+            dateTime: DateTime.now(),
+            transcript: apiResult['transcript'] ?? '',
+            isScam: apiResult['is_scam'] ?? false,
+            confidence: (apiResult['confidence'] ?? 0).toDouble(),
+            audioFilePath: audioFile.path,
+          );
+
+          final historyProvider = Provider.of<CallHistoryProvider>(context, listen: false);
+          await historyProvider.addCallHistory(callHistory);
+
+          _showResultDialog(apiResult);
+        } else {
+          _showError('Failed to analyze uploaded audio');
+        }
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        _showError('Upload failed: ${e.toString()}');
+      }
+    }
+  }
+
   String _formatDuration() {
     final seconds = (_recordingDuration / 10).floor();
     final minutes = seconds ~/ 60;
@@ -552,6 +608,47 @@ class _ScanViewState extends State<ScanView> with SingleTickerProviderStateMixin
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 20),
+
+                  // Upload Audio Button
+                  if (!_isRecording && !_isCallMonitoringActive)
+                    Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7CE7FF), Color(0xFF0EA5E9)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0EA5E9).withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: _isProcessing ? null : _uploadAndTestAudio,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.upload_file, color: Colors.white, size: 20),
+                        label: const Text(
+                          "Upload Audio File",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 20),
                 ],
