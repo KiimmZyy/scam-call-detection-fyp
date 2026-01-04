@@ -176,7 +176,7 @@ This project is part of the Final Year Project at IIUM (International Islamic Un
 ## 👥 Team Members
 
 - MUHAMMAD AFIF BIN HUSNAN (2212583)
-- [Duo Name] - [Duo Email/GitHub]
+- MUHAMMAD AMIR ZARIEFF BIN JEFNEE (2216919)
 
 ## Contact
 
