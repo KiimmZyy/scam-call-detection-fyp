@@ -109,21 +109,21 @@ flutter run
 - [Backend API Documentation](backend_api/README.md) - API endpoints, configuration, deployment
 - [Mobile App Documentation](mobile_app/README.md) - App features, setup, troubleshooting
 
-## 🔑 Key Features
+## Key Features
 
 ### Backend API
-✅ Multiple detection modes (audio file, text, streaming)  
-✅ Real-time audio chunk processing  
-✅ Speech-to-text using Whisper  
-✅ CNN-LSTM scam detection model  
-✅ RESTful API with CORS support  
+ Multiple detection modes (audio file, text, streaming)  
+ Real-time audio chunk processing  
+ Speech-to-text using Whisper  
+ CNN-LSTM scam detection model  
+ RESTful API with CORS support  
 
 ### Mobile App
-✅ Text-based scam detection  
-✅ Call history with statistics  
-✅ Confidence score display  
-✅ Scam indicator breakdown  
-✅ Customizable sensitivity settings  
+ Text and Audio-based scam detection  
+ Call history with statistics  
+ Confidence score display  
+ Scam indicator breakdown  
+ Customizable sensitivity settings  
 
 ## Testing
 
@@ -173,10 +173,10 @@ This is an academic project. To contribute:
 
 This project is part of the Final Year Project at IIUM (International Islamic University Malaysia).
 
-## 👥 Team Members
+##  Team Members
 
 - MUHAMMAD AFIF BIN HUSNAN (2212583)
-- [Duo Name] - [Duo Email/GitHub]
+- MUHAMMAD AMIR ZARIEFF BIN JEFNEE (2216919)
 
 ## Contact
 
