@@ -72,6 +72,8 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isInitializing = true;
+
   @override
   void initState() {
     super.initState();
@@ -81,10 +83,24 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _initAuth() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.init();
+    setState(() {
+      _isInitializing = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isInitializing) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0E121A),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF0EA5E9),
+          ),
+        ),
+      );
+    }
+
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         return authProvider.isAuthenticated

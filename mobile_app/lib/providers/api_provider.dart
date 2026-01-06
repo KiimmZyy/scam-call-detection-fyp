@@ -4,7 +4,7 @@ import 'dart:convert';
 
 class ApiProvider extends ChangeNotifier {
   // Using host Wi-Fi IPv4 so physical devices/emulators can reach the backend
-  static const String apiUrl = 'http://10.141.188.118:5000';
+  static const String apiUrl = 'http://172.20.10.2:5000';
 
   bool isLoading = false;
   String? error;

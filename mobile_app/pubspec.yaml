@@ -62,20 +62,20 @@ flutter:
   assets:
     - assets/audio/
 
-flutter_native_splash:
-  color: '#000000'
-  color_dark: '#000000'
-  image: assets/splash/splash_icon.png
-  image_dark: assets/splash/splash_icon.png
-  android_12:
-    image: assets/splash/splash_icon.png
-    image_dark: assets/splash/splash_icon.png
-    icon_background_color: '#5C6BC0'
+# flutter_native_splash:
+#   color: '#000000'
+#   color_dark: '#000000'
+#   image: assets/splash/splash_icon.png
+#   image_dark: assets/splash/splash_icon.png
+#   android_12:
+#     image: assets/splash/splash_icon.png
+#     image_dark: assets/splash/splash_icon.png
+#     icon_background_color: '#5C6BC0'
 
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/icon/app_icon.png"
-  adaptive_icon_background: "#5C6BC0"
-  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
-  min_sdk_android: 21
+# flutter_launcher_icons:
+#   android: "launcher_icon"
+#   ios: true
+#   image_path: "assets/icon/app_icon.png"
+#   adaptive_icon_background: "#5C6BC0"
+#   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+#   min_sdk_android: 21
