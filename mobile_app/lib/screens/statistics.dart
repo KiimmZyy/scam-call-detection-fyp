@@ -205,33 +205,35 @@ class StatisticsPage extends StatelessWidget {
                         children: [
                           const Text(
                             "Average Detection Confidence",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "${avgConfidence.toStringAsFixed(1)}%",
                                 style: const TextStyle(
-                                  fontSize: 32,
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.white.withOpacity(0.1)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text("Higher = more certain", style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                    Text("Shows model confidence", style: TextStyle(color: Colors.white54, fontSize: 11)),
-                                  ],
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: const [
+                                      Text("Higher = more\ncertain", style: TextStyle(color: Colors.white70, fontSize: 10)),
+                                      Text("Shows confidence", style: TextStyle(color: Colors.white54, fontSize: 9)),
+                                    ],
+                                  ),
                                 ),
                               )
                             ],
@@ -248,24 +250,24 @@ class StatisticsPage extends StatelessWidget {
                         children: [
                           const Text(
                             "Top Scam Keywords",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
                           ),
                           const SizedBox(height: 10),
                           topKeywords.isEmpty
                               ? const Text(
                                   "No scam calls detected yet",
-                                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                                  style: TextStyle(color: Colors.white70, fontSize: 12),
                                 )
                               : Wrap(
-                                  spacing: 10,
-                                  runSpacing: 10,
-                                  children: topKeywords.take(8).map((entry) {
-                                    final size = 12.0 + (entry.value * 3.0).clamp(0.0, 10.0);
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: topKeywords.take(6).map((entry) {
+                                    final size = 11.0 + (entry.value * 2.0).clamp(0.0, 8.0);
                                     return Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.06),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(10),
                                         border: Border.all(color: Colors.white.withOpacity(0.08)),
                                       ),
                                       child: Text(

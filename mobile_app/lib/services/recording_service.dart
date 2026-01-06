@@ -64,9 +64,9 @@ class RecordingService {
               bitRate: 128000,
               sampleRate: 16000,  // 16kHz for speech
               numChannels: 1,  // Mono is sufficient for speech
-              echoCancel: true,  // Remove background noise
-              noiseSuppress: true,  // Suppress background noise
-              autoGain: true,  // Auto-gain for consistent levels
+              echoCancel: false,  // Disable to preserve voice
+              noiseSuppress: false,  // Disable to preserve voice  
+              autoGain: true,  // Keep auto-gain for consistent levels
             ),
             path: _currentRecordingPath!,
           );
